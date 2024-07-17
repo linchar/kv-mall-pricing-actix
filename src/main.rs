@@ -5,10 +5,11 @@ use tokio::task;
 
 use opentelemetry::{
     global,
-    trace::{FutureExt, Span, SpanKind, TraceContextExt, Tracer},
+    trace::{TraceContextExt, Tracer},
     Context, KeyValue,
 };
 // use opentelemetry_http::{Bytes, HeaderExtractor};
+use actix_web_opentelemetry::RequestTracing;
 use opentelemetry_otlp::{TonicExporterBuilder, WithExportConfig};
 use opentelemetry_sdk::{
     propagation::TraceContextPropagator, runtime::TokioCurrentThread, trace, Resource,
@@ -74,10 +75,14 @@ async fn main() -> std::io::Result<()> {
         .install_batch(TokioCurrentThread)
         .expect("pipeline install error");
 
-    HttpServer::new(|| App::new().service(web::resource("/price").route(web::get().to(get_price))))
-        .bind("127.0.0.1:8080")?
-        .run()
-        .await?;
+    HttpServer::new(|| {
+        App::new()
+            .wrap(RequestTracing::new())
+            .service(web::resource("/price").route(web::get().to(get_price)))
+    })
+    .bind("127.0.0.1:8080")?
+    .run()
+    .await?;
 
     // Ensure all spans have been reported
     global::shutdown_tracer_provider();

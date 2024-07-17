@@ -1,6 +1,6 @@
 [package]
 name = "pricing_rust"
-version = "0.1.0"
+version = "0.3.0"
 edition = "2021"
 
 [dependencies]
@@ -17,3 +17,10 @@ opentelemetry_sdk = { version = "0.23", features = ["metrics", "rt-tokio-current
 opentelemetry-otlp = "0.16"
 opentelemetry-http = "0.13"
 opentelemetry-stdout = { version = "0.4", features = ["trace", "metrics"] }
+
+actix-web-opentelemetry = { version = "0.18", features = ["metrics-prometheus", "sync-middleware", "awc"] }
+# awc = { version = "3.0", optional = true, default-features = false, features = ["compress-zstd"] }
+awc = { version = "3.0", optional = true }
+
+[features]
+awc = ["dep:awc"]
