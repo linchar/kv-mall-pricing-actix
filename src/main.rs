@@ -1,6 +1,7 @@
 use actix_web::{web, App, HttpServer, Responder, Result};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use std::env;
 use tokio::task;
 
 use opentelemetry::{
@@ -70,7 +71,11 @@ async fn main() -> std::io::Result<()> {
 
     let _tracer: trace::Tracer = opentelemetry_otlp::new_pipeline()
         .tracing()
-        .with_exporter(TonicExporterBuilder::default().with_endpoint("http://localhost:4317"))
+        .with_exporter(TonicExporterBuilder::default().with_endpoint(format!(
+            "{}",
+            env::var("OTEL_EXPORTER_OTLP_ENDPOINT")
+                .unwrap_or_else(|_| "http://localhost:4317".to_string())
+        )))
         .with_trace_config(trace::Config::default().with_resource(service_name_resource))
         .install_batch(TokioCurrentThread)
         .expect("pipeline install error");
